@@ -1,6 +1,6 @@
 """
-Financial Advisor MVP - Configuration File
-Stores all settings, API keys, and constants
+Configuration for Financial Advisor MVP
+Loads environment variables and sets up API keys
 """
 
 import os
@@ -9,55 +9,48 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# ============ DATABASE CONFIG ============
-DATABASE_PATH = os.getenv("DATABASE_PATH", "expenses.db")
-
-# ============ API KEYS ============
+# ============================================
+# GROQ LLM Configuration
+# ============================================
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GOOGLE_VISION_API_KEY = os.getenv("GOOGLE_VISION_API_KEY")
+GROQ_MODEL = "mixtral-8x7b-32768"  # Fast and capable model
+GROQ_MAX_TOKENS = 1024
+GROQ_TEMPERATURE = 0.3
 
-# ============ API SETTINGS ============
-GROQ_MODEL = "openai/gpt-oss-120b" # Fast, free Groq model
-GROQ_MAX_TOKENS = 500
+# ============================================
+# Google Vision API Configuration
+# ============================================
+GOOGLE_CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
-# ============ OCR SETTINGS ============
-MAX_IMAGE_SIZE_MB = 10
-SUPPORTED_FORMATS = ["jpg", "jpeg", "png", "webp", "bmp"]
+# ============================================
+# Database Configuration
+# ============================================
+DATABASE_PATH = "expenses.db"
+DATABASE_TIMEOUT = 10.0
 
-# ============ APP SETTINGS ============
-APP_TITLE = "💰 Financial Advisor & Expense Manager"
-APP_ICON = "💳"
-
-# Categories for expense classification
-EXPENSE_CATEGORIES = [
-    "Food & Dining",
-    "Transportation",
-    "Entertainment",
-    "Shopping",
-    "Bills & Utilities",
-    "Healthcare",
-    "Education",
-    "Travel",
-    "Groceries",
-    "Other"
-]
-
-# ============ VALIDATION ============
+# ============================================
+# Validation
+# ============================================
 def validate_config():
-    """Check if all required API keys are set"""
-    missing = []
+    """Validate that all required configuration is present"""
+    issues = []
     
     if not GROQ_API_KEY:
-        missing.append("GROQ_API_KEY")
-    if not GOOGLE_VISION_API_KEY:
-        missing.append("GOOGLE_VISION_API_KEY")
+        issues.append("❌ GROQ_API_KEY not set in environment")
+    else:
+        print("✅ GROQ_API_KEY configured")
     
-    if missing:
-        print(f"⚠️  Warning: Missing env variables: {', '.join(missing)}")
-        print("   Update your .env file with API keys")
+    if not GOOGLE_CREDENTIALS_PATH:
+        issues.append("❌ GOOGLE_APPLICATION_CREDENTIALS not set in environment")
+    elif not os.path.exists(GOOGLE_CREDENTIALS_PATH):
+        issues.append(f"❌ GOOGLE_APPLICATION_CREDENTIALS file not found: {GOOGLE_CREDENTIALS_PATH}")
+    else:
+        print(f"✅ GOOGLE_APPLICATION_CREDENTIALS file found: {GOOGLE_CREDENTIALS_PATH}")
     
-    return len(missing) == 0
+    return issues
 
-if __name__ == "__main__":
-    validate_config()
-    print("✅ Config loaded successfully")
+# Run validation on import
+if __name__ != "__main__":
+    validation_issues = validate_config()
+    for issue in validation_issues:
+        print(issue)

@@ -1,7 +1,6 @@
 """
-Financial Advisor & Expense Manager MVP
-AI-powered OCR expense extraction + dashboard + financial insights
-Built with Streamlit, Google Vision API, and Groq LLM
+Financial Advisor MVP - Streamlit Web App
+Complete expense management and AI-powered financial insights dashboard
 """
 
 import streamlit as st
@@ -11,265 +10,184 @@ import plotly.express as px
 import plotly.graph_objects as go
 from ocr_engine import OCREngine
 from expense_tracker import ExpenseTracker
-import config
+import json
 
-# ============ PAGE CONFIGURATION ============
+# Page configuration
 st.set_page_config(
-    page_title=config.APP_TITLE,
-    page_icon=config.APP_ICON,
+    page_title="Financial Advisor AI",
+    page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ============ CUSTOM STYLING ============
+# Custom CSS for better UI
 st.markdown("""
-<style>
+    <style>
+    .main {
+        padding: 2rem;
+    }
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 20px;
         border-radius: 10px;
         color: white;
-        margin: 10px 0;
+        text-align: center;
     }
-    .success-text { color: #10b981; font-weight: bold; }
-    .error-text { color: #ef4444; font-weight: bold; }
-    .warning-text { color: #f59e0b; font-weight: bold; }
-</style>
+    .success-box {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 12px;
+        border-radius: 5px;
+    }
+    .error-box {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 5px;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# ============ INITIALIZE SESSION STATE ============
-if "expenses" not in st.session_state:
-    st.session_state.expenses = None
-if "tracker" not in st.session_state:
-    st.session_state.tracker = ExpenseTracker()
+# Initialize session state
 if "ocr_engine" not in st.session_state:
     st.session_state.ocr_engine = OCREngine()
 
-# ============ HELPER FUNCTIONS ============
-def load_expenses():
-    """Load all expenses from database"""
-    return st.session_state.tracker.get_all_expenses()
+if "expense_tracker" not in st.session_state:
+    st.session_state.expense_tracker = ExpenseTracker()
 
-def format_currency(amount, currency="INR"):
-    """Format amount as currency"""
-    if currency == "INR":
-        return f"₹{amount:,.2f}"
-    elif currency == "USD":
-        return f"${amount:,.2f}"
-    else:
-        return f"{amount:,.2f} {currency}"
+# App title
+st.title("💰 Financial Advisor AI")
+st.markdown("*Intelligent expense tracking powered by OCR and AI*")
 
-def get_financial_advice(spending_data):
-    """Get AI-powered financial advice based on spending"""
-    try:
-        from groq import Groq
-        client = Groq(api_key=config.GROQ_API_KEY)
-        
-        prompt = f"""Based on this spending data, provide 2-3 concise financial tips:
-- Total spent this month: ₹{spending_data.get('total', 0)}
-- Top category: {spending_data.get('top_category', 'Unknown')} (₹{spending_data.get('top_amount', 0)})
-- Number of transactions: {spending_data.get('count', 0)}
-
-Provide practical, actionable advice for an Indian college student."""
-
-        response = client.chat.completions.create(
-            model=config.GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=300,
-            temperature=0.7
-        )
-        
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Could not generate advice: {str(e)}"
-
-# ============ MAIN SIDEBAR ============
+# Sidebar navigation
 with st.sidebar:
-    st.title(config.APP_TITLE)
-    
-    st.markdown("---")
-    
-    # Navigation
+    st.header("Navigation")
     page = st.radio(
-        "Navigation",
-        ["📊 Dashboard", "📸 Add Expense (OCR)", "📋 Expenses List", "💡 Insights", "⚙️ Settings"]
+        "Select a page:",
+        ["📊 Dashboard", "📸 Add Expense", "📈 Analytics", "⚙️ Settings"]
     )
     
     st.markdown("---")
-    
-    # Quick stats
-    df = load_expenses()
-    if not df.empty:
-        total_spent = df['amount'].sum()
-        num_expenses = len(df)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Total Spent", format_currency(total_spent))
-        with col2:
-            st.metric("Transactions", num_expenses)
-    else:
-        st.info("No expenses yet. Start by adding an expense!")
-    
-    st.markdown("---")
-    
-    # Database info
-    with st.expander("ℹ️ About", expanded=False):
-        st.write(f"""
-        **Financial Advisor MVP v1.0**
-        
-        - OCR-powered expense extraction
-        - AI-powered financial insights
-        - Spend tracking & analytics
-        - Budget management
-        
-        **Tech Stack:**
-        - Streamlit (UI)
-        - Google Vision API (OCR)
-        - Groq LLM (AI)
-        - SQLite (Database)
-        """)
+    st.markdown("### About")
+    st.info("Upload receipt images, extract expenses with AI, and track spending patterns.")
 
-# ============ PAGE: DASHBOARD ============
+# PAGE 1: DASHBOARD
 if page == "📊 Dashboard":
-    st.header("📊 Dashboard")
+    st.header("Dashboard")
     
-    df = load_expenses()
+    # Get all expenses
+    expenses_df = st.session_state.expense_tracker.get_all_expenses()
     
-    if df.empty:
-        st.warning("📭 No expenses yet. Upload a receipt to get started!")
-        st.stop()
-    
-    # Monthly summary
-    month_summary = st.session_state.tracker.get_monthly_summary()
-    
-    if month_summary.get("breakdown"):
-        # Header metrics
+    if not expenses_df.empty:
+        # Key metrics
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("💰 Total This Month", format_currency(month_summary["total_spent"]))
+            total_spent = expenses_df['amount'].sum()
+            st.metric("Total Spent", f"₹{total_spent:.2f}")
         
         with col2:
-            avg_expense = month_summary["total_spent"] / len(month_summary["breakdown"]) if month_summary["breakdown"] else 0
-            st.metric("📈 Avg per Category", format_currency(avg_expense))
+            avg_expense = expenses_df['amount'].mean()
+            st.metric("Average Expense", f"₹{avg_expense:.2f}")
         
         with col3:
-            st.metric("📊 Categories", len(month_summary["breakdown"]))
+            num_expenses = len(expenses_df)
+            st.metric("Total Transactions", num_expenses)
         
         with col4:
-            num_trans = sum(c["count"] for c in month_summary["breakdown"])
-            st.metric("📝 Transactions", num_trans)
+            unique_vendors = expenses_df['vendor'].nunique()
+            st.metric("Vendors", unique_vendors)
         
-        st.markdown("---")
+        # Expense distribution by category
+        st.subheader("Expense Distribution by Category")
+        category_summary = expenses_df.groupby('category')['amount'].sum().sort_values(ascending=False)
         
-        # Charts
-        col1, col2 = st.columns(2)
+        fig_pie = px.pie(
+            values=category_summary.values,
+            names=category_summary.index,
+            title="Spending by Category"
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
         
-        # Category breakdown
-        with col1:
-            st.subheader("Spending by Category")
-            categories = [c["category"] for c in month_summary["breakdown"]]
-            amounts = [c["amount"] for c in month_summary["breakdown"]]
-            
-            fig = px.pie(
-                values=amounts, 
-                names=categories,
-                title="Monthly Breakdown"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Spending trend
-        with col2:
-            st.subheader("6-Month Trend")
-            trend = st.session_state.tracker.get_spending_trend(6)
-            
-            if trend.get("months"):
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(
-                    x=trend["months"], 
-                    y=trend["totals"],
-                    mode='lines+markers',
-                    name='Spending'
-                ))
-                fig.update_layout(
-                    title="Last 6 Months",
-                    xaxis_title="Month",
-                    yaxis_title="Amount (₹)"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        st.markdown("---")
-        
-        # Financial advice
-        st.subheader("💡 AI Financial Tips")
-        spending_data = {
-            "total": month_summary["total_spent"],
-            "top_category": month_summary["breakdown"][0]["category"] if month_summary["breakdown"] else "Unknown",
-            "top_amount": month_summary["breakdown"][0]["amount"] if month_summary["breakdown"] else 0,
-            "count": sum(c["count"] for c in month_summary["breakdown"])
-        }
-        
-        advice = get_financial_advice(spending_data)
-        st.markdown(f"> {advice}")
+        # Recent expenses table
+        st.subheader("Recent Expenses")
+        display_df = expenses_df[['id', 'vendor', 'amount', 'currency', 'category', 'date']].copy()
+        display_df = display_df.sort_values('date', ascending=False).head(10)
+        st.dataframe(display_df, use_container_width=True)
+    else:
+        st.info("No expenses recorded yet. Start by adding an expense!")
 
-# ============ PAGE: ADD EXPENSE (OCR) ============
-elif page == "📸 Add Expense (OCR)":
-    st.header("📸 Add Expense via Receipt OCR")
+# PAGE 2: ADD EXPENSE
+elif page == "📸 Add Expense":
+    st.header("Add New Expense")
     
-    st.write("Upload a receipt/payment screenshot and let AI extract the details!")
+    # Two columns for manual entry and OCR
+    col1, col2 = st.columns(2)
     
-    uploaded_file = st.file_uploader("Choose a receipt image", type=["jpg", "jpeg", "png", "webp", "bmp"])
-    
-    if uploaded_file is not None:
-        # Show preview
-        col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("📸 OCR Receipt Upload")
         
-        with col1:
-            st.subheader("Receipt Preview")
-            st.image(uploaded_file, use_column_width=True)
+        uploaded_file = st.file_uploader(
+            "Upload a receipt or payment screenshot",
+            type=["jpg", "jpeg", "png", "bmp", "gif"]
+        )
         
-        with col2:
-            st.subheader("Processing...")
+        if uploaded_file is not None:
+            st.info("Processing your receipt...")
             
-            with st.spinner("🔍 Extracting text from receipt..."):
-                # Process image
+            # Display uploaded image
+            st.image(uploaded_file, use_container_width=True)
+            
+            # Process with OCR
+            with st.spinner("Extracting text from receipt..."):
                 image_bytes = uploaded_file.read()
-                result = st.session_state.ocr_engine.process_from_bytes(image_bytes)
+                ocr_result = st.session_state.ocr_engine.process_from_bytes(image_bytes)
             
-            if result.get("success"):
+            if ocr_result.get("success"):
                 st.success("✅ Receipt processed successfully!")
                 
-                # Display extracted data
-                st.subheader("Extracted Details")
+                # Display extracted expense data
+                st.subheader("Extracted Expense Details")
                 
+                # Create form to review/edit extracted data
                 col_a, col_b = st.columns(2)
                 
                 with col_a:
                     amount = st.number_input(
                         "Amount",
-                        value=float(result.get("amount", 0)),
-                        min_value=0.0,
-                        step=0.1
+                        value=float(ocr_result.get("amount", 0)),
+                        min_value=0.0
+                    )
+                    currency = st.selectbox(
+                        "Currency",
+                        ["INR", "USD", "EUR", "GBP"],
+                        index=0 if ocr_result.get("currency") == "INR" else 0
                     )
                     vendor = st.text_input(
                         "Vendor/Store",
-                        value=result.get("vendor", "")
-                    )
-                    category = st.selectbox(
-                        "Category",
-                        config.EXPENSE_CATEGORIES,
-                        index=0 if result.get("category", "Other") not in config.EXPENSE_CATEGORIES 
-                              else config.EXPENSE_CATEGORIES.index(result.get("category", "Other"))
+                        value=ocr_result.get("vendor", "")
                     )
                 
                 with col_b:
-                    currency = st.selectbox(
-                        "Currency",
-                        ["INR", "USD", "EUR"],
-                        index=0
+                    category = st.selectbox(
+                        "Category",
+                        [
+                            "Food & Dining",
+                            "Transportation",
+                            "Entertainment",
+                            "Shopping",
+                            "Bills & Utilities",
+                            "Healthcare",
+                            "Education",
+                            "Travel",
+                            "Groceries",
+                            "Other"
+                        ],
+                        index=0 if ocr_result.get("category") == "Food & Dining" else 0
                     )
-                    expense_date = st.date_input(
+                    date = st.date_input(
                         "Date",
                         value=datetime.now()
                     )
@@ -278,225 +196,229 @@ elif page == "📸 Add Expense (OCR)":
                         ["card", "cash", "upi", "online", "unknown"]
                     )
                 
-                items_text = st.text_area(
+                items = st.text_area(
                     "Items purchased (comma-separated)",
-                    value=", ".join(result.get("items", [])) if result.get("items") else ""
+                    value=", ".join(ocr_result.get("items", []))
                 )
                 
                 notes = st.text_area(
                     "Additional notes",
-                    value=result.get("notes", "")
+                    value=ocr_result.get("notes", "")
                 )
                 
-                # Save button
-                if st.button("💾 Save Expense", use_container_width=True, type="primary"):
+                # Save expense button
+                if st.button("💾 Save Expense", type="primary"):
                     expense_data = {
                         "amount": amount,
                         "currency": currency,
                         "vendor": vendor,
                         "category": category,
-                        "items": [item.strip() for item in items_text.split(",") if item.strip()],
-                        "date": expense_date.strftime("%Y-%m-%d"),
+                        "items": [item.strip() for item in items.split(",")],
+                        "date": date.strftime("%Y-%m-%d"),
                         "payment_method": payment_method,
-                        "notes": notes,
-                        "receipt_text": result.get("receipt_text", "")
+                        "notes": notes
                     }
                     
-                    save_result = st.session_state.tracker.add_expense(expense_data)
-                    
-                    if save_result.get("success"):
-                        st.success(f"✅ {save_result['message']}")
-                        st.balloons()
-                    else:
-                        st.error(f"❌ {save_result.get('error')}")
+                    try:
+                        expense_id = st.session_state.expense_tracker.add_expense(expense_data)
+                        st.success(f"✅ Expense saved successfully! (ID: {expense_id})")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error saving expense: {str(e)}")
             else:
-                st.error(f"❌ Processing failed: {result.get('error')}")
-                st.info("💡 Tip: Make sure the receipt is clear and well-lit")
-
-# ============ PAGE: EXPENSES LIST ============
-elif page == "📋 Expenses List":
-    st.header("📋 All Expenses")
+                st.error(f"❌ Failed to process receipt: {ocr_result.get('error', 'Unknown error')}")
     
-    df = load_expenses()
-    
-    if df.empty:
-        st.info("No expenses recorded yet.")
-    else:
-        # Filters
-        col1, col2, col3 = st.columns(3)
+    with col2:
+        st.subheader("📝 Manual Entry")
         
-        with col1:
-            categories = ["All"] + sorted(df["category"].unique().tolist())
-            selected_category = st.selectbox("Filter by Category", categories)
-        
-        with col2:
-            vendors = ["All"] + sorted(df["vendor"].unique().tolist())
-            selected_vendor = st.selectbox("Filter by Vendor", vendors)
-        
-        with col3:
-            sort_by = st.selectbox("Sort by", ["Date (Newest)", "Amount (High to Low)", "Amount (Low to High)"])
-        
-        # Apply filters
-        filtered_df = df.copy()
-        
-        if selected_category != "All":
-            filtered_df = filtered_df[filtered_df["category"] == selected_category]
-        
-        if selected_vendor != "All":
-            filtered_df = filtered_df[filtered_df["vendor"] == selected_vendor]
-        
-        # Sort
-        if sort_by == "Date (Newest)":
-            filtered_df = filtered_df.sort_values("date", ascending=False)
-        elif sort_by == "Amount (High to Low)":
-            filtered_df = filtered_df.sort_values("amount", ascending=False)
-        else:
-            filtered_df = filtered_df.sort_values("amount", ascending=True)
-        
-        # Display table
-        display_df = filtered_df[[
-            "id", "date", "vendor", "category", "amount", "currency", "payment_method"
-        ]].copy()
-        display_df["amount"] = display_df.apply(
-            lambda x: format_currency(x["amount"], x["currency"]), axis=1
+        manual_amount = st.number_input(
+            "Amount",
+            min_value=0.0,
+            step=10.0,
+            key="manual_amount"
         )
-        display_df = display_df.drop("currency", axis=1)
         
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        manual_currency = st.selectbox(
+            "Currency",
+            ["INR", "USD", "EUR", "GBP"],
+            key="manual_currency"
+        )
         
-        # Export option
+        manual_vendor = st.text_input(
+            "Vendor/Store",
+            key="manual_vendor"
+        )
+        
+        manual_category = st.selectbox(
+            "Category",
+            [
+                "Food & Dining",
+                "Transportation",
+                "Entertainment",
+                "Shopping",
+                "Bills & Utilities",
+                "Healthcare",
+                "Education",
+                "Travel",
+                "Groceries",
+                "Other"
+            ],
+            key="manual_category"
+        )
+        
+        manual_date = st.date_input(
+            "Date",
+            value=datetime.now(),
+            key="manual_date"
+        )
+        
+        manual_payment = st.selectbox(
+            "Payment Method",
+            ["card", "cash", "upi", "online", "unknown"],
+            key="manual_payment"
+        )
+        
+        manual_items = st.text_area(
+            "Items (comma-separated)",
+            key="manual_items"
+        )
+        
+        manual_notes = st.text_area(
+            "Notes",
+            key="manual_notes"
+        )
+        
+        if st.button("💾 Save Manual Entry", type="primary", key="save_manual"):
+            if manual_amount > 0 and manual_vendor:
+                expense_data = {
+                    "amount": manual_amount,
+                    "currency": manual_currency,
+                    "vendor": manual_vendor,
+                    "category": manual_category,
+                    "items": [item.strip() for item in manual_items.split(",")] if manual_items else [],
+                    "date": manual_date.strftime("%Y-%m-%d"),
+                    "payment_method": manual_payment,
+                    "notes": manual_notes
+                }
+                
+                try:
+                    expense_id = st.session_state.expense_tracker.add_expense(expense_data)
+                    st.success(f"✅ Expense saved! (ID: {expense_id})")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+            else:
+                st.warning("⚠️ Please enter amount and vendor")
+
+# PAGE 3: ANALYTICS
+elif page == "📈 Analytics":
+    st.header("Analytics & Insights")
+    
+    expenses_df = st.session_state.expense_tracker.get_all_expenses()
+    
+    if not expenses_df.empty:
+        # Time range selector
+        col1, col2 = st.columns(2)
+        with col1:
+            days_back = st.slider("Show data from last N days", 7, 365, 30)
+        
+        # Filter data
+        cutoff_date = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+        filtered_df = expenses_df[expenses_df['date'] >= cutoff_date]
+        
+        # Spending trend
+        st.subheader("Spending Trend Over Time")
+        daily_spending = filtered_df.groupby('date')['amount'].sum().reset_index()
+        
+        fig_trend = px.line(
+            daily_spending,
+            x='date',
+            y='amount',
+            title="Daily Spending",
+            markers=True
+        )
+        st.plotly_chart(fig_trend, use_container_width=True)
+        
+        # Category breakdown
+        st.subheader("Category Analysis")
         col1, col2 = st.columns(2)
         
         with col1:
-            st.metric("Total", format_currency(filtered_df["amount"].sum()))
+            category_data = filtered_df.groupby('category')['amount'].sum().sort_values(ascending=True)
+            fig_category = px.barh(
+                x=category_data.values,
+                y=category_data.index,
+                title="Spending by Category"
+            )
+            st.plotly_chart(fig_category, use_container_width=True)
         
         with col2:
-            csv = filtered_df.to_csv(index=False)
-            st.download_button(
-                label="📥 Download as CSV",
-                data=csv,
-                file_name=f"expenses_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
+            vendor_data = filtered_df.groupby('vendor')['amount'].sum().sort_values(ascending=False).head(10)
+            fig_vendor = px.bar(
+                x=vendor_data.index,
+                y=vendor_data.values,
+                title="Top 10 Vendors",
+                labels={"x": "Vendor", "y": "Amount (₹)"}
             )
-
-# ============ PAGE: INSIGHTS ============
-elif page == "💡 Insights":
-    st.header("💡 Financial Insights")
-    
-    df = load_expenses()
-    
-    if df.empty:
-        st.warning("Add some expenses to see insights!")
+            st.plotly_chart(fig_vendor, use_container_width=True)
+        
+        # Statistics
+        st.subheader("Statistics")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Period Total", f"₹{filtered_df['amount'].sum():.2f}")
+        
+        with col2:
+            st.metric("Average Daily", f"₹{filtered_df.groupby('date')['amount'].sum().mean():.2f}")
+        
+        with col3:
+            st.metric("Max Transaction", f"₹{filtered_df['amount'].max():.2f}")
     else:
-        # Category analysis
-        st.subheader("Top Spending Categories")
-        cat_summary = st.session_state.tracker.get_expenses_by_category()
-        
-        if cat_summary.get("categories"):
-            col1, col2 = st.columns([1, 1])
-            
-            with col1:
-                fig = px.bar(
-                    x=cat_summary["categories"],
-                    y=cat_summary["totals"],
-                    labels={"x": "Category", "y": "Amount (₹)"},
-                    title="Top Spending Categories"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                st.subheader("Category Breakdown")
-                for cat, total, count in zip(cat_summary["categories"], cat_summary["totals"], cat_summary["counts"]):
-                    st.metric(cat, format_currency(total), f"{count} transactions")
-        
-        # Spending patterns
-        st.subheader("Spending Patterns")
-        
-        trend = st.session_state.tracker.get_spending_trend(12)
-        
-        if trend.get("months"):
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                x=trend["months"],
-                y=trend["totals"],
-                name="Monthly Spending"
-            ))
-            fig.update_layout(
-                title="12-Month Spending Trend",
-                xaxis_title="Month",
-                yaxis_title="Amount (₹)"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        st.info("No data to analyze. Add some expenses first!")
 
-# ============ PAGE: SETTINGS ============
+# PAGE 4: SETTINGS
 elif page == "⚙️ Settings":
-    st.header("⚙️ Settings")
+    st.header("Settings")
     
-    st.subheader("Database")
     col1, col2 = st.columns(2)
     
     with col1:
-        st.metric("Database Path", config.DATABASE_PATH)
+        st.subheader("Database")
         
-        if st.button("Refresh Data"):
-            st.session_state.expenses = None
-            st.success("✅ Data refreshed")
+        if st.button("📊 View Database Stats"):
+            expenses_df = st.session_state.expense_tracker.get_all_expenses()
+            st.write(f"Total expenses: {len(expenses_df)}")
+            st.write(f"Total spent: ₹{expenses_df['amount'].sum():.2f}")
+        
+        if st.button("🗑️ Clear All Data (Caution!)"):
+            if st.checkbox("I understand this will delete all data"):
+                try:
+                    st.session_state.expense_tracker.clear_all_expenses()
+                    st.success("✅ All data cleared")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
     
     with col2:
-        # Export data
-        if st.button("📥 Export All Expenses"):
-            result = st.session_state.tracker.export_to_csv()
-            if result.get("success"):
-                st.success(result["message"])
-            else:
-                st.error(result.get("error"))
-    
-    st.markdown("---")
-    
-    st.subheader("API Status")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if config.GROQ_API_KEY:
-            st.success("✅ Groq LLM: Connected")
-        else:
-            st.error("❌ Groq LLM: Not configured")
-    
-    with col2:
-        if config.GOOGLE_VISION_API_KEY:
-            st.success("✅ Google Vision: Connected")
-        else:
-            st.warning("⚠️ Google Vision: Not configured (OCR will be limited)")
-    
-    st.markdown("---")
-    
-    st.subheader("About")
-    st.write(f"""
-    **Financial Advisor & Expense Manager MVP**
-    Version: 1.0.0
-    
-    Built with ❤️ for learning AI integration
-    
-    **Features:**
-    - 📸 Receipt OCR using Google Vision API
-    - 🤖 AI-powered expense categorization (Groq LLM)
-    - 📊 Spending analytics and insights
-    - 💾 SQLite database management
-    - 📥 CSV export functionality
-    
-    **Technologies:**
-    - Streamlit
-    - Google Cloud Vision API
-    - Groq AI API
-    - SQLite
-    - Pandas & Plotly
-    """)
+        st.subheader("About")
+        st.info("""
+        **Financial Advisor AI MVP**
+        
+        Version: 1.0
+        Built with: Streamlit, Google Vision, Groq LLM
+        
+        Features:
+        - 📸 OCR receipt scanning
+        - 🤖 AI expense categorization
+        - 📊 Expense tracking & analytics
+        - 💡 Financial insights
+        """)
 
-# ============ FOOTER ============
+# Footer
 st.markdown("---")
-st.markdown("""
-<div style='text-align: center; color: gray; font-size: 12px;'>
-    Made with ❤️ | Financial Advisor MVP | Powered by Streamlit, Google Vision & Groq AI
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    "<div style='text-align: center; color: gray;'>"
+    "Financial Advisor AI © 2026 | Built with ❤️ and AI"
+    "</div>",
+    unsafe_allow_html=True
+)

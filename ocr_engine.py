@@ -5,29 +5,32 @@ Extracts text and expense data from receipt/payment screenshots using Google Vis
 
 import json
 import os
-from dotenv import load_dotenv
+import tempfile
 from PIL import Image
 import io
 from google.cloud import vision
 from groq import Groq
 import config
 
-load_dotenv()
-
 class OCREngine:
     def __init__(self):
         """Initialize OCR and LLM engines"""
-               # Initialize Google Vision API
+        # Initialize Google Vision API
         try:
-            # Check if credentials file path is set
-            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            # Get credentials path from config
+            credentials_path = config.GOOGLE_CREDENTIALS_PATH
             
-            if not credentials_path or not os.path.exists(credentials_path):
-                print("⚠️  Google Vision API key not configured")
-                print(f"   Expected file at: {credentials_path}")
+            if not credentials_path:
+                print("⚠️  GOOGLE_APPLICATION_CREDENTIALS not set in environment")
+                self.vision_client = None
+            elif not os.path.exists(credentials_path):
+                print(f"⚠️  Google credentials file not found: {credentials_path}")
                 self.vision_client = None
             else:
-                # Set up credentials from environment variable
+                # Set environment variable for Google client library
+                os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+                
+                # Initialize the Vision client
                 self.vision_client = vision.ImageAnnotatorClient()
                 print(f"✅ Google Vision Client initialized from: {credentials_path}")
         except Exception as e:
@@ -35,7 +38,12 @@ class OCREngine:
             self.vision_client = None
         
         # Initialize Groq LLM for AI analysis
-        self.groq_client = Groq(api_key=config.GROQ_API_KEY)
+        try:
+            self.groq_client = Groq(api_key=config.GROQ_API_KEY)
+            print("✅ Groq LLM initialized")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not initialize Groq: {e}")
+            self.groq_client = None
     
     def extract_text_from_image(self, image_path):
         """
@@ -48,6 +56,13 @@ class OCREngine:
             dict: Extracted text and confidence scores
         """
         try:
+            if not self.vision_client:
+                return {
+                    "success": False,
+                    "text": "",
+                    "error": "Google Vision API not configured"
+                }
+            
             # Read image file
             with open(image_path, 'rb') as image_file:
                 content = image_file.read()
@@ -91,6 +106,12 @@ class OCREngine:
             dict: Parsed expense data (amount, vendor, category, date, etc.)
         """
         try:
+            if not self.groq_client:
+                return {
+                    "success": False,
+                    "error": "Groq LLM not configured"
+                }
+            
             # Create AI prompt for expense parsing
             prompt = f"""Analyze this receipt text and extract expense details. Return ONLY a JSON object with these fields:
 - amount (numeric, e.g., 250.50)
@@ -177,10 +198,10 @@ Return ONLY valid JSON, no markdown formatting."""
             dict: Complete expense data or error
         """
         try:
-            # Save bytes to temporary file
-            temp_path = "/tmp/receipt_temp.jpg"
-            with open(temp_path, 'wb') as f:
-                f.write(image_bytes)
+            # Save bytes to temporary file (works on Windows and Linux)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+                temp_file.write(image_bytes)
+                temp_path = temp_file.name
             
             # Process the temporary file
             result = self.process_receipt_image(temp_path)
@@ -202,4 +223,4 @@ if __name__ == "__main__":
     engine = OCREngine()
     print("✅ OCR Engine initialized successfully")
     print(f"Vision Client: {'Ready' if engine.vision_client else 'Not configured'}")
-    print(f"Groq LLM: Ready")
+    print(f"Groq LLM: {'Ready' if engine.groq_client else 'Not configured'}")
