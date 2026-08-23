@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.env
+gcp-key.json
+expenses.db
+__pycache__/
+*.pyc
+.DS_Store
