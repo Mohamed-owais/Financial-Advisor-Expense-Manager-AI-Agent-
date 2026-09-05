@@ -2,11 +2,11 @@ import streamlit as st
 from groq import Groq
 import tempfile
 import os
-from pathlib import Path
 from ocr_engine import extract_text_from_image, analyze_expense_with_groq
 from expense_tracker import ExpenseTracker
 from config import GROQ_API_KEY, validate_config
-import json
+import pandas as pd
+import plotly.express as px
 
 # Page config
 st.set_page_config(page_title="Financial Advisor AI", layout="wide")
@@ -19,7 +19,8 @@ except ValueError as e:
     st.stop()
 
 # Initialize Groq client
-groq_client = Groq(api_key=GROQ_API_KEY)
+from groq import Groq as GroqClient
+groq_client = GroqClient(api_key=GROQ_API_KEY)
 
 # Initialize database
 db = ExpenseTracker()
@@ -68,13 +69,16 @@ with tab1:
             
             # Step 3: Save to database
             st.write("**Step 3: Saving to database...**")
-            db.add_expense(
-                item_name=expense_data.get('item_name', 'Unknown'),
-                amount=float(expense_data.get('amount', 0)),
-                category=expense_data.get('category', 'Other'),
-                date=expense_data.get('date', ''),
-                vendor=expense_data.get('vendor', 'Unknown')
-            )
+            db.add_expense({
+                "item_name": expense_data.get('item_name', 'Unknown'),
+                "amount": float(expense_data.get('amount', 0)),
+                "category": expense_data.get('category', 'Other'),
+                "date": expense_data.get('date', ''),
+                "vendor": expense_data.get('vendor', 'Unknown'),
+                "currency": "INR",
+                "payment_method": "unknown",
+                "notes": ""
+            })
             st.success("✅ Expense saved!")
             
             # Display parsed data
@@ -108,40 +112,78 @@ with tab2:
     
     expenses = db.get_all_expenses()
     
-    if not expenses:
+    if expenses.empty:
         st.info("No expenses recorded yet. Upload a receipt to get started!")
     else:
         # Display as table
-        import pandas as pd
-        df = pd.DataFrame(expenses, columns=['ID', 'Item', 'Amount (₹)', 'Category', 'Date', 'Vendor'])
-        st.dataframe(df, use_container_width=True)
+        display_df = expenses[['id', 'amount', 'category', 'date', 'vendor']].copy()
+        display_df.columns = ['ID', 'Amount (₹)', 'Category', 'Date', 'Vendor']
+        st.dataframe(display_df, use_container_width=True)
         
         # Summary stats
         st.write("### Summary Statistics")
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            total = sum([e[2] for e in expenses])
+            total = expenses['amount'].sum()
             st.metric("Total Spent", f"₹{total:.2f}")
         
         with col2:
             st.metric("Number of Expenses", len(expenses))
         
         with col3:
-            avg = sum([e[2] for e in expenses]) / len(expenses) if expenses else 0
+            avg = expenses['amount'].mean()
             st.metric("Average Expense", f"₹{avg:.2f}")
         
         # Category breakdown
         st.write("### Expenses by Category")
         category_totals = {}
-        for expense in expenses:
-            category = expense[4]  # Category column
-            amount = expense[2]    # Amount column
+        for idx, row in expenses.iterrows():
+            category = row['category']
+            amount = row['amount']
             category_totals[category] = category_totals.get(category, 0) + amount
         
-        import plotly.express as px
-        fig = px.pie(
-            names=list(category_totals.keys()),
-            values=list(category_totals.values()),
-            title="Expense Breakdown by Category"
-        )
+        if category_totals:
+            fig = px.pie(
+                names=list(category_totals.keys()),
+                values=list(category_totals.values()),
+                title="Expense Breakdown by Category"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+# ==================== TAB 3: FINANCIAL INSIGHTS ====================
+with tab3:
+    st.write("### 💡 Financial Insights & Recommendations")
+    
+    expenses = db.get_all_expenses()
+    
+    if expenses.empty:
+        st.info("Add expenses first to get insights!")
+    else:
+        # Get insights from Groq
+        expense_summary = f"Total expenses: {len(expenses)}\n"
+        for idx, row in expenses.iterrows():
+            expense_summary += f"- {row['vendor']}: ₹{row['amount']} ({row['category']})\n"
+        
+        try:
+            insight_prompt = f"""Based on these expenses, provide brief financial advice (2-3 sentences):
+
+{expense_summary}
+
+Give actionable insights on spending patterns and savings tips."""
+
+            message = groq_client.chat.completions.create(
+                model="qwen/qwen3.6-27b",
+                max_tokens=512,
+                messages=[{"role": "user", "content": insight_prompt}]
+            )
+            
+            insights = message.choices[0].message.content
+            st.info(insights)
+        
+        except Exception as e:
+            st.error(f"Error generating insights: {str(e)}")
+
+# Footer
+st.divider()
+st.caption("Financial Advisor AI - Powered by EasyOCR & Groq LLM")

@@ -1,9 +1,51 @@
 venv/
 __pycache__/
 *.pyc
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
 .env
-.DS_Store
-expenses.db
-*.egg-info/
-.streamlit/
+.venv
+venv/
+ENV/
+env/
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Tests
 .pytest_cache/
+.coverage
+htmlcov/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs
+*.log
+
+# Data
+test_receipt.jpg
+
+# Distribution
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+temp_ocr_output.txt

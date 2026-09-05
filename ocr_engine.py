@@ -76,13 +76,13 @@ Return JSON format:
 
 Categories: Food, Transport, Shopping, Entertainment, Utilities, Other"""
 
-        message = groq_client.messages.create(
-            model="mixtral-8x7b-32768",
+        message = groq_client.chat.completions.create(
+            model="qwen/qwen3.6-27b",
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}]
         )
         
-        response_text = message.content[0].text.strip()
+        response_text = message.choices[0].message.content.strip()
         
         # Parse JSON
         import json

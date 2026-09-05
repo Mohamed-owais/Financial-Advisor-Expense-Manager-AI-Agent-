@@ -1,3 +1,4 @@
+DATABASE_PATH = 'expenses.db'
 """
 Financial Advisor MVP - Expense Tracker
 Manages SQLite database for storing and analyzing expenses

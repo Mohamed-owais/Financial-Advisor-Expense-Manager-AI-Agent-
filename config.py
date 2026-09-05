@@ -7,6 +7,9 @@ load_dotenv()
 # Get API keys
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
+# Database
+DATABASE_PATH = 'expenses.db'
+
 # Validate keys
 def validate_config():
     """Validate that required API keys are set"""
