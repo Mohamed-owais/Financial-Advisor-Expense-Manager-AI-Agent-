@@ -1,10 +1,13 @@
+import sys
+sys.path.insert(0, r'C:\financial-advisor-ai')
 import streamlit as st
 from groq import Groq
 import tempfile
 import os
-from ocr_engine import extract_text_from_image, analyze_expense_with_groq
-from expense_tracker import ExpenseTracker
-from config import GROQ_API_KEY, validate_config
+from backend.ocr.engine import extract_text_from_image
+from backend.ai.analyzer import analyze_expense_with_groq
+from backend.database.tracker import ExpenseTracker
+from backend.config import GROQ_API_KEY, validate_config
 import pandas as pd
 import plotly.express as px
 

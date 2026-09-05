@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 import pandas as pd
 from pathlib import Path
-import config
+from backend.config import DATABASE_PATH
 
 class ExpenseTracker:
     def __init__(self, db_path=None):
@@ -19,7 +19,7 @@ class ExpenseTracker:
         Args:
             db_path: Path to SQLite database file (default: expenses.db)
         """
-        self.db_path = db_path or config.DATABASE_PATH
+        self.db_path = db_path or DATABASE_PATH
         self.init_database()
     
     def init_database(self):
