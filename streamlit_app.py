@@ -67,36 +67,39 @@ with tab1:
             expense_data = analyze_expense_with_groq(extracted_text, groq_client)
             st.success("✅ Analysis complete!")
             
-            # Step 3: Save to database
+                  # Step 3: Save to database
             st.write("**Step 3: Saving to database...**")
-            db.add_expense({
-                "item_name": expense_data.get('item_name', 'Unknown'),
-                "amount": float(expense_data.get('amount', 0)),
-                "category": expense_data.get('category', 'Other'),
-                "date": expense_data.get('date', ''),
-                "vendor": expense_data.get('vendor', 'Unknown'),
-                "currency": "INR",
-                "payment_method": "unknown",
-                "notes": ""
-            })
-            st.success("✅ Expense saved!")
-            
-            # Display parsed data
-            st.write("### Extracted Expense Details:")
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("Amount", f"₹{expense_data.get('amount', 0)}")
-            with col2:
-                st.metric("Category", expense_data.get('category', 'Other'))
-            with col3:
-                st.metric("Vendor", expense_data.get('vendor', 'Unknown'))
-            with col4:
-                st.metric("Date", expense_data.get('date', 'N/A'))
-            
-            # Raw JSON
-            with st.expander("📋 View Raw JSON"):
-                st.json(expense_data)
+            if expense_data:
+                db.add_expense({
+                    "amount": float(expense_data.get('amount', 0)),
+                    "vendor": expense_data.get('vendor', 'Unknown'),
+                    "category": expense_data.get('category', 'Other'),
+                    "date": expense_data.get('date', ''),
+                    "items": [expense_data.get('item_name', 'Unknown')],
+                    "currency": "INR",
+                    "payment_method": "unknown",
+                    "notes": ""
+                })
+                st.success("✅ Expense saved!")
+                
+                # Display parsed data
+                st.write("### Extracted Expense Details:")
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Amount", f"₹{expense_data.get('amount', 0)}")
+                with col2:
+                    st.metric("Category", expense_data.get('category', 'Other'))
+                with col3:
+                    st.metric("Vendor", expense_data.get('vendor', 'Unknown'))
+                with col4:
+                    st.metric("Date", expense_data.get('date', 'N/A'))
+                
+                # Raw JSON
+                with st.expander("📋 View Raw JSON"):
+                    st.json(expense_data)
+            else:
+                st.error("❌ Could not parse expense data")
         
         except Exception as e:
             st.error(f"❌ Error processing receipt: {str(e)}")
@@ -173,7 +176,7 @@ with tab3:
 Give actionable insights on spending patterns and savings tips."""
 
             message = groq_client.chat.completions.create(
-                model="qwen/qwen3.6-27b",
+                model="openai/gpt-oss-20b",
                 max_tokens=512,
                 messages=[{"role": "user", "content": insight_prompt}]
             )

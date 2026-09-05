@@ -1,3 +1,6 @@
+import json
+from PIL import Image
+Image.ANTIALIAS = Image.Resampling.LANCZOS
 import easyocr
 import cv2
 import os
@@ -65,30 +68,57 @@ def analyze_expense_with_groq(receipt_text, groq_client):
         dict: Parsed expense details
     """
     try:
-        prompt = f"""Analyze this receipt text and extract expense details.
-Return ONLY a JSON object (no markdown, no backticks):
+        prompt = f"""Extract from receipt: item name, amount in rupees (number only), category, date (YYYY-MM-DD), vendor name.
+        Return ONLY this JSON format with NO other text:
+        {{"item_name": "item", "amount": 0, "category": "Food", "date": "2024-09-05", "vendor": "shop"}}
 
-Receipt text:
-{receipt_text}
-
-Return JSON format:
-{{"item_name": "...", "amount": 0.0, "category": "...", "date": "YYYY-MM-DD", "vendor": "..."}}
-
-Categories: Food, Transport, Shopping, Entertainment, Utilities, Other"""
+        Receipt:
+        {receipt_text}"""
 
         message = groq_client.chat.completions.create(
-            model="qwen/qwen3.6-27b",
+            model="openai/gpt-oss-20b",
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}]
         )
-        
+
         response_text = message.choices[0].message.content.strip()
-        
+        print(f"DEBUG: Response = {response_text}")
+
+        # Remove markdown if present
+        response_text = message.choices[0].message.content.strip()
+        print(f"DEBUG: Full response = '{response_text}'")
+
+        if not response_text:
+            return {
+                "item_name": "Receipt",
+                "amount": 0,
+                "category": "Other",
+                "date": "2024-09-05",
+                "vendor": "Unknown"
+            }
+
+        # Remove markdown if present
+        if '```' in response_text:
+            response_text = response_text.split('```')[1]
+            if response_text.startswith('json'):
+                response_text = response_text[4:]
+
+        response_text = response_text.strip()
+        print(f"DEBUG: Cleaned response = '{response_text}'")
+
         # Parse JSON
         import json
-        expense_data = json.loads(response_text)
-        
-        return expense_data
+        try:
+            expense_data = json.loads(response_text)
+        except json.JSONDecodeError as e:
+            print(f"DEBUG: JSON error = {e}")
+            return {
+        "item_name": "Receipt",
+        "amount": 0,
+        "category": "Other",
+        "date": "2024-09-05",
+        "vendor": "Unknown"
+    }
         
     except Exception as e:
         print(f"❌ Groq Analysis Error: {str(e)}")
