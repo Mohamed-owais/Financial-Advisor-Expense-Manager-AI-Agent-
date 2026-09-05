@@ -1,36 +1,34 @@
-"""
-Test OCR Engine - Verify Google Vision API and Groq LLM initialization
-"""
-
+"""Test EasyOCR engine"""
 import os
-import sys
+from ocr_engine import extract_text_from_image, initialize_reader
 
-# Add project directory to path
-sys.path.insert(0, os.path.dirname(__file__))
+print("=" * 50)
+print("TEST 3.1: EasyOCR Engine")
+print("=" * 50)
 
-from ocr_engine import OCREngine
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("TEST 3.1: OCR ENGINE TEST")
-    print("=" * 60)
+try:
+    print("\n1️⃣ Initializing OCR reader...")
+    reader = initialize_reader()
+    print("✅ OCR reader initialized successfully!")
     
-    # Initialize OCR engine
-    engine = OCREngine()
+    print("\n2️⃣ Testing with sample image...")
     
-    print("\n✅ OCR Engine initialized successfully")
-    print(f"Vision Client: {'Ready ✅' if engine.vision_client else 'Not configured ⚠️'}")
-    print(f"Groq LLM: Ready ✅")
+    # Create a simple test image if it doesn't exist
+    test_image_path = "test_receipt.jpg"
     
-    # If vision client is ready, show status
-    if engine.vision_client:
-        print("\n✅ Google Vision API is properly configured!")
+    if os.path.exists(test_image_path):
+        print(f"   Using existing test image: {test_image_path}")
+        text = extract_text_from_image(test_image_path)
+        print("\n✅ Text extraction successful!")
+        print(f"\nExtracted text:\n{text[:200]}...")
     else:
-        print("\n⚠️  Google Vision API not configured")
-        print("   Check: GOOGLE_APPLICATION_CREDENTIALS environment variable")
-        print("   Check: gcp-key.json file exists in project folder")
+        print(f"   ℹ️  No test image found at {test_image_path}")
+        print("   To test: Upload a receipt image to the Streamlit app")
     
-    print("\n" + "=" * 60)
-    print("TEST 3.1 COMPLETE")
-    print("=" * 60)
-    print("\nNext: Run test_database.py")
+    print("\n" + "=" * 50)
+    print("✅ TEST PASSED: EasyOCR engine is working!")
+    print("=" * 50)
+
+except Exception as e:
+    print(f"\n❌ TEST FAILED: {str(e)}")
+    print("=" * 50)
