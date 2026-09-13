@@ -12,20 +12,23 @@ def analyze_expense_with_groq(receipt_text, groq_client):
         dict: Parsed expense details
     """
     try:
-        prompt = f"""Extract from receipt: item name, amount in rupees (number only), category, date (YYYY-MM-DD), vendor name.
-Return ONLY this JSON format with NO other text:
-{{"item_name": "item", "amount": 0, "category": "Food", "date": "2024-09-05", "vendor": "shop"}}
+        prompt = f"""From this receipt, extract: item name, amount (₹), category, date, vendor.
+Categories: Food, Transport, Shopping, Entertainment, Utilities, Healthcare, Education, Other.
 
-Receipt:
-{receipt_text}"""
+Receipt text:
+{receipt_text}
 
+Return ONLY JSON (no markdown):
+{{"item_name": "item", "amount": 100, "category": "Food", "date": "2024-09-05", "vendor": "shop"}}"""
         message = groq_client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="groq/compound-mini",
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}]
         )
 
         response_text = message.choices[0].message.content.strip()
+        print(f"DEBUG: Response length = {len(response_text)}")
+        print(f"DEBUG: Response content = {repr(response_text)}")
         print(f"DEBUG: Full response = '{response_text}'")
 
         if not response_text:
@@ -34,7 +37,8 @@ Receipt:
                 "amount": 0,
                 "category": "Other",
                 "date": "2024-09-05",
-                "vendor": "Unknown"
+                "vendor": "Unknown",
+                "confidence": 0
             }
 
         # Remove markdown if present
@@ -49,6 +53,8 @@ Receipt:
         # Parse JSON
         try:
             expense_data = json.loads(response_text)
+            if isinstance(expense_data, list):
+             expense_data = expense_data[0]
         except json.JSONDecodeError as e:
             print(f"DEBUG: JSON error = {e}")
             return {
@@ -56,7 +62,8 @@ Receipt:
                 "amount": 0,
                 "category": "Other",
                 "date": "2024-09-05",
-                "vendor": "Unknown"
+                "vendor": "Unknown",
+                "confidence": 0
             }
         
         return expense_data
