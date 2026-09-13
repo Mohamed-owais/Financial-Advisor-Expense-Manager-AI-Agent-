@@ -33,7 +33,7 @@ st.title("💰 Financial Advisor AI")
 st.subheader("AI-Powered Receipt & Expense Management")
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["📸 Upload Receipt", "📊 View Expenses", "💡 Financial Insights"])
+tab1, tab2, tab3, tab4 = st.tabs(["📸 Upload Receipt", "📊 View Expenses", "💡 Financial Insights", "🧠 Advisor"])
 
 # ==================== TAB 1: UPLOAD RECEIPT ====================
 with tab1:
@@ -189,6 +189,56 @@ Give actionable insights on spending patterns and savings tips."""
         
         except Exception as e:
             st.error(f"Error generating insights: {str(e)}")
+# ==================== TAB 4: ADVISOR ====================
+with tab4:
+    st.write("### 🧠 Financial Advisor")
+    
+    expenses = db.get_all_expenses()
+    
+    if expenses.empty:
+        st.info("Add expenses first to get personalized advice!")
+    else:
+        from backend.ai.financial_advisor import get_financial_advice, get_guru_comparison
+        from backend.ai.gurus import WARREN_BUFFETT, ROBERT_KIYOSAKI, RAMIT_SETHI, INDIAN_CONTEXT
+        
+        # Calculate stats
+        total_spent = expenses['amount'].sum()
+        monthly_income = 50000  # Default, can be customized
+        savings_goal = "Build emergency fund"
+        
+        # Get category breakdown
+        category_totals = {}
+        for idx, row in expenses.iterrows():
+            category = row['category']
+            amount = row['amount']
+            category_totals[category] = category_totals.get(category, 0) + amount
+        
+        try:
+            # Get AI advice
+            user_profile = {
+                "monthly_income": monthly_income,
+                "top_expenses": category_totals,
+                "monthly_budget": total_spent,
+                "savings_goal": savings_goal
+            }
+            
+            advice = get_financial_advice(user_profile)
+            st.success("✅ AI Financial Advisor")
+            st.info(advice)
+            
+            # Guru comparison
+            st.write("### 📚 Guru Comparison")
+            guru_select = st.selectbox("Choose a financial guru:", 
+                                      ["Warren Buffett", "Robert Kiyosaki", "Ramit Sethi", "Indian Context"])
+            
+            if guru_select:
+                guru_advice = get_guru_comparison(category_totals, guru_select)
+                st.write(f"### {guru_select}'s Take:")
+                st.info(guru_advice)
+        
+        except Exception as e:
+            st.error(f"Error generating advice: {str(e)}")            
+
 
 # Footer
 st.divider()
