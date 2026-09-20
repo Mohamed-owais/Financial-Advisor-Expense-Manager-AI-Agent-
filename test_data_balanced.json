@@ -1,0 +1,392 @@
+[
+  {
+    "date": "2026-07-14",
+    "category": "food",
+    "amount": 1470.75,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-06-18",
+    "category": "food",
+    "amount": 1949.67,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-07-08",
+    "category": "food",
+    "amount": 2952.5,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-06-29",
+    "category": "food",
+    "amount": 1672.0,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-06-25",
+    "category": "entertainment",
+    "amount": 1480.0,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-07-04",
+    "category": "entertainment",
+    "amount": 1355.5,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-06-21",
+    "category": "entertainment",
+    "amount": 905.67,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-07-11",
+    "category": "entertainment",
+    "amount": 774.67,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-07-02",
+    "category": "shopping",
+    "amount": 699.75,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-06-23",
+    "category": "shopping",
+    "amount": 1442.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-06-25",
+    "category": "shopping",
+    "amount": 995.33,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-06-22",
+    "category": "utilities",
+    "amount": 903.0,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-07-03",
+    "category": "utilities",
+    "amount": 578.0,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-07-05",
+    "category": "utilities",
+    "amount": 757.67,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-06-21",
+    "category": "utilities",
+    "amount": 767.33,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-07-08",
+    "category": "transport",
+    "amount": 548.75,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-07-05",
+    "category": "transport",
+    "amount": 544.25,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-06-29",
+    "category": "transport",
+    "amount": 1183.0,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-06-20",
+    "category": "transport",
+    "amount": 949.0,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-06-18",
+    "category": "savings",
+    "amount": 1309.67,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-06-21",
+    "category": "savings",
+    "amount": 1170.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-07-10",
+    "category": "savings",
+    "amount": 979.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-08-09",
+    "category": "food",
+    "amount": 3236.5,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-07-18",
+    "category": "food",
+    "amount": 2721.5,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-08-14",
+    "category": "food",
+    "amount": 1580.0,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-07-27",
+    "category": "food",
+    "amount": 1644.5,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-07-24",
+    "category": "entertainment",
+    "amount": 739.67,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-07-18",
+    "category": "entertainment",
+    "amount": 960.0,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-08-02",
+    "category": "entertainment",
+    "amount": 900.0,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-07-27",
+    "category": "entertainment",
+    "amount": 921.33,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-08-03",
+    "category": "shopping",
+    "amount": 552.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-03",
+    "category": "shopping",
+    "amount": 1150.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-13",
+    "category": "shopping",
+    "amount": 827.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-04",
+    "category": "shopping",
+    "amount": 565.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-07-26",
+    "category": "utilities",
+    "amount": 730.67,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-08-12",
+    "category": "utilities",
+    "amount": 726.67,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-07-18",
+    "category": "utilities",
+    "amount": 1009.0,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-08-15",
+    "category": "transport",
+    "amount": 601.25,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-07-29",
+    "category": "transport",
+    "amount": 1489.0,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-07-28",
+    "category": "transport",
+    "amount": 1140.5,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-08-03",
+    "category": "savings",
+    "amount": 1144.75,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-07-31",
+    "category": "savings",
+    "amount": 1414.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-07-27",
+    "category": "savings",
+    "amount": 1800.5,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-08-03",
+    "category": "savings",
+    "amount": 1597.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-09-12",
+    "category": "food",
+    "amount": 1854.33,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-09-05",
+    "category": "food",
+    "amount": 2802.0,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-09-09",
+    "category": "food",
+    "amount": 3115.5,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-08-30",
+    "category": "food",
+    "amount": 1442.0,
+    "description": "food expense"
+  },
+  {
+    "date": "2026-08-23",
+    "category": "entertainment",
+    "amount": 829.33,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-08-26",
+    "category": "entertainment",
+    "amount": 927.33,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-09-03",
+    "category": "entertainment",
+    "amount": 1039.0,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-09-14",
+    "category": "entertainment",
+    "amount": 582.75,
+    "description": "entertainment expense"
+  },
+  {
+    "date": "2026-08-22",
+    "category": "shopping",
+    "amount": 709.5,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-20",
+    "category": "shopping",
+    "amount": 1447.0,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-23",
+    "category": "shopping",
+    "amount": 699.5,
+    "description": "shopping expense"
+  },
+  {
+    "date": "2026-08-30",
+    "category": "utilities",
+    "amount": 773.0,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-09-04",
+    "category": "utilities",
+    "amount": 556.5,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-08-26",
+    "category": "utilities",
+    "amount": 952.33,
+    "description": "utilities expense"
+  },
+  {
+    "date": "2026-08-24",
+    "category": "transport",
+    "amount": 812.0,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-09-13",
+    "category": "transport",
+    "amount": 1611.0,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-09-14",
+    "category": "transport",
+    "amount": 1956.5,
+    "description": "transport expense"
+  },
+  {
+    "date": "2026-09-12",
+    "category": "savings",
+    "amount": 2347.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-09-09",
+    "category": "savings",
+    "amount": 1225.0,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-09-03",
+    "category": "savings",
+    "amount": 1154.33,
+    "description": "savings expense"
+  },
+  {
+    "date": "2026-09-06",
+    "category": "savings",
+    "amount": 1214.67,
+    "description": "savings expense"
+  }
+]
