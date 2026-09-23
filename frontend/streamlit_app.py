@@ -179,7 +179,7 @@ with tab3:
 Give actionable insights on spending patterns and savings tips."""
 
             message = groq_client.chat.completions.create(
-                model="groq/compound-mini",
+                model="qwen/qwen3.8-27b",
                 max_tokens=512,
                 messages=[{"role": "user", "content": insight_prompt}]
             )

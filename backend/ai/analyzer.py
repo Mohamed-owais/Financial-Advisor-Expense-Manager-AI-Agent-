@@ -21,7 +21,7 @@ Receipt text:
 Return ONLY JSON (no markdown):
 {{"item_name": "item", "amount": 100, "category": "Food", "date": "2024-09-05", "vendor": "shop"}}"""
         message = groq_client.chat.completions.create(
-            model="groq/compound-mini",
+            model="qwen/qwen3.8-27b",
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}]
         )

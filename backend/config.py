@@ -8,8 +8,8 @@ load_dotenv()
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 # Groq Model Configuration
-GROQ_MODEL = "llama-3.3-70b-versatile"
-GROQ_MAX_TOKENS = 1000
+GROQ_MODEL = "qwen/qwen3.8-27b"
+GROQ_MAX_TOKENS = 750
 
 # Database
 DATABASE_PATH = 'expenses.db'

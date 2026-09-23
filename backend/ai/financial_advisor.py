@@ -35,7 +35,7 @@ IMPORTANT:
 Your advice:"""
     
     response = client.chat.completions.create(
-        model="groq/compound-mini",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "user", "content": prompt}
         ],
@@ -66,7 +66,7 @@ Using {guru_name}'s principles, answer:
 Keep it concise and practical."""
     
     response = client.chat.completions.create(
-        model="groq/compound-mini",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "user", "content": prompt}
         ],

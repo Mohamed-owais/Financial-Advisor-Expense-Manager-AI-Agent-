@@ -44,7 +44,7 @@ STRICT RULES:
         
         try:
             response = self.client.chat.completions.create(
-                model="groq/compound-mini",
+                model="qwen/qwen3.8-27b",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
                 temperature=temperature
