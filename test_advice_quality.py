@@ -24,31 +24,47 @@ class AdviceQualityTester:
     def generate_advice(self, spending_summary, pattern_name):
         """Generate advice and measure quality"""
         
-        prompt = f"""Based on this spending pattern ({pattern_name}):
-{json.dumps(spending_summary, indent=2)}
+        prompt = f"""Analyze this MONTHLY spending data for {pattern_name}:
 
-Give 3 specific financial advice points:
-1. How to save more money (exact amounts in rupees)
-2. Which category to reduce spending most
-3. One universally-applicable investment strategy
+        {json.dumps(spending_summary, indent=2)}
 
-STRICT RULES - DO NOT BREAK:
-- ONLY recommend: ELSS mutual funds, PPF (Public Provident Fund), or generic SIP
-- ELSS has 3-year mandatory lock-in (NOT 12 months)
-- Section 80C allows UP TO ₹1.5 lakh deduction per year (NOT 80%)
-- PPF limit: ₹1.5 lakh per financial year
-- NEVER recommend: Sukanya Samriddhi, Senior Citizens Savings Scheme, or any scheme requiring specific demographics
-- Investment recommendation must NOT exceed total savings freed up from step 1
-- Be extremely specific: use exact ₹ amounts, percentages
-- End with: "Disclaimer: This is educational information only, not certified financial advice."
-- Keep response under 300 words"""
+Provide exactly 3 sections:
+
+**1. How to save more money (MONTHLY)**
+- Top 3 spending categories
+- Calculate 10-15% reduction for each
+- Show math: category × % = savings
+- Total monthly savings
+Example: Food: ₹10,000 × 15% = ₹1,500/month
+
+**2. Which category to reduce most**
+- Name the HIGHEST category
+- Explain why (largest amount)
+- Be specific with exact amount
+
+**3. One investment strategy**
+RULE: Total investments = Total savings from step 1
+
+Monthly savings tier:
+- <₹2,000: 100% ELSS (3-year lock-in, Section 80C)
+- ₹2,000-5,000: 60% ELSS + 40% PPF
+- >₹5,000: 50% ELSS + 50% PPF
+
+Show: "Monthly savings: ₹X → Investment: ₹X"
+
+Include Section 80C limit (₹1.5L/year max)
+Include PPF limit (₹1.5L/year max)
+
+End with: "Disclaimer: Educational information only, not certified financial advice."
+
+Keep under 300 words."""
         start_time = time.time()
         
         try:
             response = self.client.chat.completions.create(
-                model="groq/compound-mini",
+                model="qwen/qwen3.8-27b",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=300,
+                max_tokens=750,
                 temperature=0.3
             )
             
