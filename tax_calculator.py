@@ -1,24 +1,25 @@
 class IncomeTaxCalculator:
     """Indian Income Tax Calculator (FY 2024-25)"""
-    
+
     TAX_SLABS = [
-        (250000, 0),           # 0-2.5L: 0%
-        (500000, 0.05),        # 2.5-5L: 5%
-        (1000000, 0.20),       # 5-10L: 20%
-        (float('inf'), 0.30)   # 10L+: 30%
+        (300000, 0),           # 0-3L: 0%
+        (600000, 0.05),        # 3-6L: 5%
+        (900000, 0.20),        # 6-9L: 20%
+        (1200000, 0.30),       # 9-12L: 30%
+        (float('inf'), 0.30)   # 12L+: 30%
     ]
-    
+
     DEDUCTIONS = {
-        "80C": 150000,         # ELSS, PPF, LIC, etc
-        "80D": 50000,          # Health insurance
-        "80E": 50000,          # Education loan
-        "80CCD": 50000,        # NPS
+        "80C": 150000,
+        "80D": 50000,
+        "80E": 50000,
+        "80CCD": 50000,
     }
-    
+
     def __init__(self, annual_income):
         self.annual_income = annual_income
         self.taxable_income = annual_income
-    
+
     def apply_deduction(self, deduction_type, amount):
         """Apply tax deduction"""
         if deduction_type in self.DEDUCTIONS:
@@ -27,27 +28,28 @@ class IncomeTaxCalculator:
             self.taxable_income -= ded
             return ded
         return 0
-    
+
     def calculate_tax(self):
         """Calculate income tax based on slabs"""
         tax = 0
-        remaining = self.taxable_income
-        
+        previous_limit = 0
+
         for slab_limit, rate in self.TAX_SLABS:
-            if remaining <= 0:
+            if self.taxable_income <= previous_limit:
                 break
-            taxable_in_slab = min(remaining, slab_limit)
+            
+            taxable_in_slab = min(self.taxable_income, slab_limit) - previous_limit
             tax += taxable_in_slab * rate
-            remaining -= taxable_in_slab
-        
+            previous_limit = slab_limit
+
         return tax
-    
+
     def get_summary(self):
         """Return complete tax calculation"""
         tax = self.calculate_tax()
-        cess = tax * 0.04  # 4% cess
+        cess = tax * 0.04
         total_tax = tax + cess
-        
+
         return {
             "gross_income": self.annual_income,
             "taxable_income": self.taxable_income,

@@ -1,51 +1,11 @@
-venv/
-__pycache__/
-*.pyc
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environment
 .env
-.venv
+.env.local
+.encryption_key
+expenses.db
+expenses.db.encrypted
+*.pyc
+__pycache__/
 venv/
-ENV/
-env/
-
-# Database
-*.db
-*.sqlite3
-*.sqlite
-
-# Tests
-.pytest_cache/
-.coverage
-htmlcov/
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Logs
+.streamlit/
 *.log
-
-# Data
-test_receipt.jpg
-
-# Distribution
-dist/
-build/
-
-# IDE
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Temp files
-temp_ocr_output.txt
+.DS_Store.env 

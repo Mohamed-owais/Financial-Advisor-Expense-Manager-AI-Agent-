@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -8,6 +9,7 @@ load_dotenv()
 # Initialize Groq client
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
+@st.cache_data(ttl=3600)
 def get_financial_advice(user_profile: dict) -> str:
     """
     Generate financial advice based on user spending patterns.
@@ -46,10 +48,13 @@ Your advice:"""
     return response.choices[0].message.content
 
 
-def get_guru_comparison(top_expenses: dict, guru_name: str = "Ramit Sethi") -> str:
+@st.cache_data(ttl=3600)
+def get_guru_comparison(top_expenses_tuple, guru_name: str = "Ramit Sethi") -> str:
     """
     Compare spending against financial guru principles.
     """
+    # Convert tuple back to dict
+    top_expenses = dict(top_expenses_tuple)
     
     expenses_text = "\n".join([f"- {cat}: ₹{amount}" for cat, amount in top_expenses.items()])
     
@@ -102,6 +107,7 @@ if __name__ == "__main__":
     print("\n" + "="*60 + "\n")
     
     print("📚 Getting guru comparison...")
-    guru_advice = get_guru_comparison(test_profile['top_expenses'], "Ramit Sethi")
+    expenses_tuple = tuple(sorted(test_profile['top_expenses'].items()))
+    guru_advice = get_guru_comparison(expenses_tuple, "Ramit Sethi")
     print("\n✅ GURU COMPARISON:\n")
     print(guru_advice)
